@@ -10,7 +10,7 @@ import {
 import { verifyUser } from "../middleware/verifyUser.js";
 
 const EventRouter = express.Router();
-
+EventRouter.get("/dashboard", verifyUser, getUserDashboard);
 EventRouter.get("/", getAllEvents);
 
 EventRouter.post("/create", verifyUser, createEvent);
@@ -20,7 +20,5 @@ EventRouter.post("/:id/join", verifyUser, joinEvent);
 EventRouter.delete("/:id", verifyUser, deleteEvent);
 
 EventRouter.put("/:id", verifyUser, updateEvent);
-
-EventRouter.get("/dashboard", verifyUser, getUserDashboard);
 
 export default EventRouter;

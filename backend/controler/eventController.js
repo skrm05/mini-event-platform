@@ -71,11 +71,13 @@ export const deleteEvent = async (req, res) => {
 };
 
 export const updateEvent = async (req, res) => {
+  console.log(1);
   try {
+    console.log(2);
     const { id } = req.params;
     const { title, description, date, location, capacity, image } = req.body;
     const event = await Event.findById(id);
-
+    console.log(3);
     if (!event) {
       return res.status(404).json({ message: "Event not found." });
     }
