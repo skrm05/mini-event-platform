@@ -71,7 +71,7 @@ export const deleteEvent = async (req, res) => {
 };
 
 export const updateEvent = async (req, res) => {
-  console.log(1);
+  console.log(req.body);
   try {
     console.log(2);
     const { id } = req.params;
@@ -98,6 +98,7 @@ export const updateEvent = async (req, res) => {
     const updatedEvent = await event.save();
     res.status(200).json(updatedEvent);
   } catch (error) {
+    console.log("catch block");
     console.error("Update Event Error:", error);
     res.status(500).json({ message: "Failed to update event." });
   }

@@ -4,9 +4,9 @@ export const verifyUser = async (req, res, next) => {
   try {
     console.log("verify");
     let { token } = req.cookies;
-    console.log("token");
+    console.log("token=>", token);
     let { id } = verifyToken(token);
-    console.log("id");
+    console.log("id=> ", id);
     if (!id) {
       return res.status(401).send({ error: "Invalid Token" });
     } else {
