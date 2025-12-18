@@ -24,6 +24,7 @@ const Login = () => {
       });
 
       if (res.data) {
+        localStorage.setItem("token", res.data.token);
         login(res.data.token, res.data._id);
 
         alert("Login Successful!");
