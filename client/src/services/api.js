@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://mini-event-platform-e21p.onrender.com//api",
+  baseURL: "https://mini-event-platform-e21p.onrender.com/api",
   withCredentials: true,
 });
 
