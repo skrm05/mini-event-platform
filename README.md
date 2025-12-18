@@ -1,104 +1,109 @@
-Mini Event Platform - MERN Stack
-I have built a complete web application where users can create events, view them on a dashboard, and join events with strict capacity limits.
+# Mini Event Platform - MERN Stack
 
-🚀 Live Demo
+A full-stack web application that allows users to create, view, and RSVP to events with strict capacity enforcement. Built as part of a Full Stack Developer Intern assessment.
 
-Frontend Deployed URL: [Link to your Vercel App]
+---
 
-Backend Deployed URL: [Link to your Render Server]
+## 🚀 Live Demo
 
-GitHub Repository: [Link to your GitHub]
+- **Frontend Deployed URL:** [Link to your Vercel App]
+- **Backend Deployed URL:** [Link to your Render Server]
 
-✨ Features Implemented
+---
 
-Authentication:
+## ✨ Features Implemented
 
-User Signup & Login using JWT Tokens (secure session management).
+### **Authentication & Security**
 
-Passwords are encrypted for security.
+- **User Signup & Login:** Secure authentication using **JWT (JSON Web Tokens)**.
+- **Session Management:** Stateless session handling via HTTP-only cookies and local storage backup.
+- **Password Encryption:** User passwords are hashed before storage for security.
 
-Event Management:
+### **Event Management (CRUD)**
 
-Create new events with Title, Date, Location, Image, and Capacity.
+- **Create Events:** Users can create events with Title, Description, Date, Location, Image, and Max Capacity.
+- **Edit & Delete:** Strict authorization ensures only the **creator** of an event can modify or delete it.
+- **Dashboard:** A unified view showing upcoming events on the homepage.
 
-View all upcoming events on the Home Page.
+### **RSVP System (The Core Challenge)**
 
-Edit & Delete: Only the user who created the event can edit or delete it.
+- **Join/Leave Events:** Users can RSVP to events with a single click.
+- **Capacity Enforcement:** The system strictly prevents joining if an event is full.
+- **Guest List:** Event creators can view a list of attendees (Name & Email) for their events.
 
-RSVP System:
+### **Bonus Features**
 
-Users can join events with a single click.
+- **🎨 Dark Mode:** Toggle between Light and Dark themes (preference persisted in Local Storage).
+- **📱 Responsive UI:** Fully optimized layout for Desktop, Tablet, and Mobile devices using Bootstrap.
+- **👤 User Dashboard:** A private area to manage "Events I Created" and view "Events I Joined".
 
-Capacity Handling: The system stops people from joining if the event is full.
+---
 
-Dashboard: A private page showing "Events I Created" and "Events I Joined".
+## 🛠️ Tech Stack
 
-Guest List: Creators can see the names and emails of people who joined their event.
+- **Frontend:** React.js, Vite, Bootstrap 5, Axios, React Router DOM.
+- **Backend:** Node.js, Express.js.
+- **Database:** MongoDB Atlas (Cloud).
+- **Authentication:** JWT, bcryptjs.
+- **Deployment:** Vercel (Client) + Render (Server).
 
-Bonus Features:
+---
 
-Dark Mode: Toggle between light and dark themes (saved in local storage).
+## ⚙️ How to Run Locally
 
-Responsive Design: Works well on mobile and desktop.
+Follow these steps to run the project on your local machine.
 
-🛠️ Tech Stack
+### **1. Clone the Repository**
 
-Frontend: React.js, Bootstrap (for UI), Axios (for API calls), React Router.
+```bash
+git clone [gh repo clone skrm05/mini-event-platform]
+cd mini-event-platform
+```
 
-Backend: Node.js, Express.js.
-
-Database: MongoDB Atlas (Cloud Database).
-
-Authentication: JWT (JSON Web Tokens) & Cookies.
-
-⚙️ How to Run Locally
-
-Follow these steps to run the project on your machine.
-
-1. Backend Setup (Server)
-   Open the server folder in terminal.
-
-Install dependencies:
+2. Backend Setup
+   Navigate to the server folder and install dependencies.
 
 Bash
 
+cd server
 npm install
-Create a .env file in the server folder and add these details:
+Create a .env file in the server folder and add the following credentials:
 
 Code snippet
 
 PORT=9000
 MONGO_URL=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-Start the server:
+JWT_SECRET=your_complex_secret_key
+NODE_ENV=development
+Start the backend server:
 
 Bash
 
 npm start
-Server will run on http://localhost:9000
+Server will run on: http://localhost:9000
 
-2. Frontend Setup (Client)
-   Open the client folder in a new terminal.
-
-Install dependencies:
+3. Frontend Setup
+   Open a new terminal, navigate to the client folder, and install dependencies.
 
 Bash
 
+cd client
 npm install
-Start the React app:
+Start the React development server:
 
 Bash
 
 npm run dev
-Client will run on http://localhost:5173
+Client will run on: http://localhost:5173
 
 🧠 Technical Explanation: Handling Concurrency & Overbooking
+One of the critical requirements for this assignment was to handle Race Conditions—preventing "Overbooking" when multiple users try to RSVP for the last available spot at the exact same millisecond.
 
-One of the main requirements was to prevent "Overbooking" when many users try to join an event at the exact same time (Race Conditions).
+The Problem
+A standard "Read-Check-Write" approach (read capacity -> check if full -> update) fails under high concurrency because multiple requests can "read" the available spot simultaneously before any of them write the update.
 
-My Solution: Instead of using a simple "Read then Write" approach (which fails under high load), I used MongoDB Atomic Updates.
-
-I used the findOneAndUpdate query with a specific condition. The database checks the capacity during the update operation itself.
+My Solution: Atomic Updates
+I utilized MongoDB's Atomic Operators to perform the check and the update in a single database operation. This ensures data consistency without needing complex transaction locks.
 
 The Code Logic:
 
@@ -107,12 +112,16 @@ JavaScript
 const updatedEvent = await Event.findOneAndUpdate(
 {
 \_id: id,
-attendees: { $ne: userId }, // 1. Check if user is NOT already in list
-    $expr: { $lt: [{ $size: "$attendees" }, "$capacity"] } // 2. Check if size is LESS than capacity
+// 1. Concurrency Check: Ensure strictly less than capacity
+$expr: { $lt: [{ $size: "$attendees" }, "$capacity"] },
+// 2. Duplicate Check: Ensure user is not already in the list
+attendees: { $ne: userId }
 },
 {
-$push: { attendees: userId } // Only push if both conditions above are true
-}
+$push: { attendees: userId } // Atomic Push
+},
+{ new: true }
 );
+Why this works: Because MongoDB operations on a single document are atomic, the database itself enforces the rule. If two users vie for one spot, the database processes the requests sequentially. The first one succeeds, and the second one fails the $expr condition immediately, guaranteeing that the capacity limit is never breached.
 
-Because MongoDB operations are atomic, no two requests can modify the document at the exact same moment. If the event has 1 spot left and 2 users click "Join", the database will only let one succeed and the other will fail. This guarantees that we never exceed the set capacity.
+Developer: Sanjay kumar
